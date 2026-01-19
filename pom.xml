@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.7.14</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.lvcha</groupId>
+    <artifactId>web3</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>web3</name>
+    <description>Spring Boot project to interact with Ethereum contracts</description>
+    <modules>
+        <module>chain-listen</module>
+    </modules>
+
+    <!-- 添加可用的仓库 -->
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+        <repository>
+            <id>hyperledger</id>
+            <url>https://hyperledger.jfrog.io/artifactory/besu-maven/</url>
+        </repository>
+    </repositories>
+
+    <properties>
+        <java.version>17</java.version>
+        <web3j.version>4.10.0</web3j.version>
+        <lombok.version>1.18.30</lombok.version>
+        <druid.version>1.1.17</druid.version>
+        <mybatis.plus.version>3.4.2</mybatis.plus.version>
+        <github.pagehelper.version>2.0.0</github.pagehelper.version>
+    </properties>
+
+    <dependencies>
+        <!-- Spring Boot -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+            <version>2.7.0</version>
+        </dependency>
+
+
+
+        <!-- Lombok to reduce boilerplate code -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.web3j</groupId>
+            <artifactId>core</artifactId>
+            <version>${web3j.version}</version>
+        </dependency>
+
+
+        <!-- Web3j代码生成器 -->
+        <dependency>
+            <groupId>org.web3j</groupId>
+            <artifactId>codegen</artifactId>
+            <version>${web3j.version}</version>
+        </dependency>
+
+        <!-- mysql驱动 -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+            <version>${mysql.version}</version>
+        </dependency>
+
+        <!-- druid -->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid-spring-boot-starter</artifactId>
+            <version>${druid.version}</version>
+        </dependency>
+
+        <!-- mybatisPlus -->
+        <dependency>
+            <groupId>com.baomidou</groupId>
+            <artifactId>mybatis-plus-boot-starter</artifactId>
+            <version>${mybatis.plus.version}</version>
+        </dependency>
+        <!-- mybatisPlus 分页插件 -->
+        <dependency>
+            <groupId>com.github.pagehelper</groupId>
+            <artifactId>pagehelper-spring-boot-starter</artifactId>
+            <version>${github.pagehelper.version}</version>
+        </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <includeSystemScope>true</includeSystemScope>
+                    <fork>true</fork>
+                    <mainClass>web3.EthSpringBootApplication</mainClass>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                </configuration>
+            </plugin>
+
+<!--            <plugin>-->
+<!--                <groupId>org.codehaus.mojo</groupId>-->
+<!--                <artifactId>exec-maven-plugin</artifactId>-->
+<!--                <version>3.1.0</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <id>generate-contracts</id>-->
+<!--                        <phase>generate-sources</phase>-->
+<!--                        <goals>-->
+<!--                            <goal>java</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <mainClass>web3.utils.SimpleSolidityGenerator</mainClass>-->
+<!--                            <classpathScope>compile</classpathScope>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+<!--            </plugin>-->
+<!--            <plugin>-->
+<!--                <groupId>org.web3j</groupId>-->
+<!--                <artifactId>web3j-maven-plugin</artifactId>-->
+<!--                <version>${web3j.version}</version>-->
+<!--                <executions>-->
+<!--                    <execution>-->
+<!--                        <goals>-->
+<!--                            <goal>generate-sources</goal>-->
+<!--                        </goals>-->
+<!--                        <configuration>-->
+<!--                            <packageName>web3.contract</packageName>-->
+<!--                            <sourceDestination>src/main/java/web3/contract</sourceDestination>-->
+<!--                            <nativeJavaType>true</nativeJavaType>-->
+<!--                        </configuration>-->
+<!--                    </execution>-->
+<!--                </executions>-->
+
+<!--            </plugin>-->
+
+        </plugins>
+    </build>
+</project>

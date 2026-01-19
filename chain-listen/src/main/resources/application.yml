@@ -1,0 +1,94 @@
+# 应用配置
+spring:
+  application:
+    name: chain-listen
+    # Kafka配置
+  kafka:
+    bootstrap-servers: localhost:9092
+    dover-topic: dover
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      # 消息发送失败重试次数
+      retries: 3
+      # 批量发送的批次大小
+      batch-size: 16384
+      # 缓冲区大小
+      buffer-memory: 33554432
+    consumer:
+      group-id: dover-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      enable-auto-commit: true
+      # 自动提交间隔
+      auto-commit-interval: 1000
+      auto-offset-reset: earliest
+
+  datasource:
+    #mycat链接IP:PORT
+    url:
+    username:
+    password:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      max-active: 100
+      initial-size: 5
+      min-idle: 10
+      max-wait: 60000
+      pool-prepared-statements: true
+      max-pool-prepared-statement-per-connection-size: 20
+      # 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒
+      time-between-eviction-runs-millis: 60000
+      # 配置一个连接在池中最小生存的时间，单位是毫秒
+      min-evictable-idle-time-millis: 300000
+      # 配置一个连接在池中最大生存的时间，单位是毫秒
+      max-evictable-idle-time-millis: 900000
+      # 配置检测连接是否有效
+      validation-query: select 1 from dual
+      #validation-query-timeout: 5000
+      test-while-idle: true
+      test-on-borrow: false
+      test-on-return: false
+      connection-properties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+      stat-view-servlet:
+        enabled: true
+        url-pattern: /druid/*
+        login-username: oompp
+        login-password: 123456
+        #        是否能够重置数据
+        reset-enable: true
+        #        白名单
+        #        allow:
+        #        IP黑名单
+        #        deny:
+      web-stat-filter:
+        enabled: true
+        url-pattern: /*
+        exclusions: /*.js,/*.gif,/*.jpg,/*.png,/*.css,/*.ico,/druid/*
+
+  #Mybatis-Plus配置
+  mybatis-plus:
+    mapper-locations: classpath:mapper/**/*.xml
+    type-aliases-package: com.lvcha.web3.message.pojo
+    configuration:
+      log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+server:
+  port: 8800
+
+# 网络配置
+ethereum:
+  network:
+    url: https://test-rpc.bjwmls.com/
+    chainId: 6860686
+  account:
+    # 私钥应通过环境变量或外部配置提供，避免硬编码
+    privateKey: ${ETHEREUM_PRIVATE_KEY}
+  gas-price: 2000000000
+  gas-limit: 1400000
+  # 合约地址配置 - 可以在部署合约后修改
+  contract:
+    address: ${CONTRACT_ADDRESS}
+
+
