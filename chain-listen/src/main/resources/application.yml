@@ -70,9 +70,16 @@ spring:
   #Mybatis-Plus配置
   mybatis-plus:
     mapper-locations: classpath:mapper/**/*.xml
-    type-aliases-package: com.lvcha.web3.message.pojo
+    type-aliases-package: com.lvcha.web3.pojo
     configuration:
       log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+  influxdb:
+    url: http://localhost:8086  # InfluxDB服务地址
+    token: your-token-here     # 访问令牌（InfluxDB中生成）
+    org: your-org-name         # 组织名称
+    bucket: your-bucket-name   # 数据桶名称
+    timeout: 10000             # 连接超时时间（毫秒）
 
 server:
   port: 8800

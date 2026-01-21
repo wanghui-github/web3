@@ -105,6 +105,13 @@
             <version>${github.pagehelper.version}</version>
         </dependency>
 
+        <!-- InfluxDB 2.x 官方客户端 -->
+        <dependency>
+            <groupId>com.influxdb</groupId>
+            <artifactId>influxdb-client-java</artifactId>
+            <version>6.7.0</version>
+        </dependency>
+
         <!-- Test dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
