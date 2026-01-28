@@ -1,12 +1,12 @@
 package com.lvcha.web3.handler;
 
+import com.lvcha.web3.pojo.DoverTransactionDetail;
 import com.lvcha.web3.service.ContractService;
 import com.lvcha.web3.service.DoverTransactionService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import com.lvcha.web3.pojo.DoverTransactionDetail;
-import com.lvcha.web3.service.DoverTransactionService;
+
 import javax.annotation.Resource;
 import java.math.BigInteger;
 import java.util.Map;
@@ -78,7 +78,7 @@ public  class MessageHandler {
                     detail.setBlockNumber((Integer) block.get("number"));
                     detail.setMethod(method);
                     detail.setIsKy(isKy.intValue());
-                    detail.setOperation(1);
+                    detail.setOperation("1");
                     return detail;
 
                 } else if ("0x050d05fd".equals(method)||"0x2e17de78".equals(method)) {//kydcnyunstake
@@ -91,9 +91,27 @@ public  class MessageHandler {
                     detail.setTimestamp((Integer) block.get("timestamp"));
                     detail.setBlockNumber((Integer) block.get("number"));
                     detail.setMethod(method);
-                    detail.setOperation(-1);
+                    detail.setOperation("-1");
                     detail.setSn(sn.intValue());
                     return detail;
+                }else if ("0x38ed1739".equals(method)){ //swap交易
+                    DoverTransactionDetail detail = new DoverTransactionDetail();
+                    detail.setFromAddress((String) tx.get("from"));
+                    detail.setToAddress((String) tx.get("to"));
+                    detail.setTransactionHash((String) tx.get("hash"));
+                    detail.setFromAddress((String) tx.get("from"));
+                    detail.setToAddress((String) tx.get("to"));
+                    detail.setTimestamp((Integer) block.get("timestamp"));
+                    detail.setBlockNumber((Integer) block.get("number"));
+                    detail.setMethod(method);
+                    try {
+                        contractService.addDog(detail.getFromAddress());
+                        detail.setOperation("dog-success");
+                    }catch (Exception e){
+                        log.info("Error addDog: {}", (String) tx.get("from"), e);
+                        detail.setOperation("dog-fail");
+                    }
+
                 }
 
             }

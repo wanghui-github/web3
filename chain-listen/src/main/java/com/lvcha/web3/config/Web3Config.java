@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.web3j.crypto.Credentials;
@@ -16,24 +17,32 @@ import org.web3j.tx.gas.ContractGasProvider;
 import org.web3j.tx.gas.StaticGasProvider;
 
 import java.math.BigInteger;
+import java.util.List;
 
 @Configuration
+@ConfigurationProperties(prefix = "ethereum")
 @Data
-public class MyConfig {
+public class Web3Config {
     @Value("${ethereum.network.url}")
     private String networkUrl;
 
     @Value("${ethereum.account.privateKey}")
     private String privateKey;
 
-    @Value("${ethereum.gas-price}")
     private BigInteger gasPrice;
 
-    @Value("${ethereum.gas-limit}")
     private BigInteger gasLimit;
 
-    @Value("${ethereum.contract.address}")
-    private String contractAddress;
+    @Value("${ethereum.contract.lp-address}")
+    private String lpContractAddress;
+
+    @Value("${ethereum.contract.tse-address}")
+    private String tseContractAddress;
+
+    @Value("${ethereum.contract.token-address}")
+    private String tokenContractAddress;
+
+    private List<String> whiteList;
 
     @Bean
     public Web3j web3j() {

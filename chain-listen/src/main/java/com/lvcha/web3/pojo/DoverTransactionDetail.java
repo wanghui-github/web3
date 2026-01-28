@@ -16,7 +16,7 @@ public class DoverTransactionDetail {
     private Integer blockNumber;
     private String method;
     private Integer isKy;
-    private Integer operation;
+    private String  operation;
     private Integer sn;
 }
 

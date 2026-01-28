@@ -7,7 +7,7 @@ import org.springframework.stereotype.Service;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.tx.gas.ContractGasProvider;
-import com.lvcha.web3.config.MyConfig;
+import com.lvcha.web3.config.Web3Config;
 import com.lvcha.web3.contract.generated.SimpleStorage;
 
 import javax.annotation.PostConstruct;
@@ -20,15 +20,15 @@ public class ContractEventListener {
     private final Web3j web3j;
     private final Credentials credentials;
     private final ContractGasProvider gasProvider;
-    private final MyConfig ethereumConfig;
+    private final Web3Config ethereumConfig;
 
-    private SimpleStorage contract;
+    private SimpleStorage tseContract;
     private Disposable eventSubscription;
 
     @PostConstruct
     public void init() {
-        contract = SimpleStorage.load(
-            ethereumConfig.getContractAddress(),
+        tseContract = SimpleStorage.load(
+            ethereumConfig.getTseContractAddress(),
             web3j,
             credentials,
             gasProvider

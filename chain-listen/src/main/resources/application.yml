@@ -26,9 +26,9 @@ spring:
 
   datasource:
     #mycat链接IP:PORT
-    url:
-    username:
-    password:
+    url: jdbc:mysql://rm-bp1y59x7n9x25dhb2fo.mysql.rds.aliyuncs.com:3306/tianyilife?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&serverTimezone=GMT%2B8&allowMultiQueries=true
+    username: tiane_develop
+    password: SsyTy!2026
     driver-class-name: com.mysql.cj.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
     druid:
@@ -74,12 +74,6 @@ spring:
     configuration:
       log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
-  influxdb:
-    url: http://localhost:8086  # InfluxDB服务地址
-    token: your-token-here     # 访问令牌（InfluxDB中生成）
-    org: your-org-name         # 组织名称
-    bucket: your-bucket-name   # 数据桶名称
-    timeout: 10000             # 连接超时时间（毫秒）
 
 server:
   port: 8800
@@ -91,11 +85,26 @@ ethereum:
     chainId: 6860686
   account:
     # 私钥应通过环境变量或外部配置提供，避免硬编码
-    privateKey: ${ETHEREUM_PRIVATE_KEY}
+    privateKey: "a60504333b4a49d1cb075bfed5597f6cbf77d786965f5a55f460932b5bce7374"
   gas-price: 2000000000
   gas-limit: 1400000
   # 合约地址配置 - 可以在部署合约后修改
   contract:
-    address: ${CONTRACT_ADDRESS}
+    lp-address: "0xd05088b5DF39E11ED0d63e78cCb8210572E2f9A7"
+    tse-address: "0x40f5543eF2a9cBE429b26dED8e50298e7A67f12d"
+    token-address: "0x9F327d97dfb70d5D9ef2fc0c23e53D527C77765D"
+  white-list:
+    - "0x845cA2B0D6d28D58ABAECEf30E94f9adc62C9086"
+
+php:
+  dog-url: "https://apiv2.tyconsume.cn/api/dayusdt/adddog"
+
+logging:
+  file:
+    name: logs/${spring.application.name}/debug.log
+  level:
+    com.doubleSix: debug
+    root: info
+  config: classpath:logback/logback-prod.xml
 
 

@@ -34,28 +34,33 @@ public class ContractController {
         return ResponseEntity.ok(value);
     }
 
-    @PostMapping("/dcnyStake")
-    public ResponseEntity<Map<String, Object>> dcnyStake(BigInteger amountdcny, BigInteger days) {
-        try {
-            var receipt = contractService.dcnystake(amountdcny, days);
-            return ResponseEntity.ok(Map.of(
-                "transactionHash", receipt.getTransactionHash(),
-                "blockNumber", receipt.getBlockNumber(),
-                "gasUsed", receipt.getGasUsed(),
-                "status", receipt.getStatus()
-            ));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500)
-                .body(Map.of("error", e.getMessage()));
-        }
-
-    }
+//    @PostMapping("/dcnyStake")
+//    public ResponseEntity<Map<String, Object>> dcnyStake(BigInteger amountdcny, BigInteger days) {
+//        try {
+//            var receipt = contractService.dcnystake(amountdcny, days);
+//            return ResponseEntity.ok(Map.of(
+//                "transactionHash", receipt.getTransactionHash(),
+//                "blockNumber", receipt.getBlockNumber(),
+//                "gasUsed", receipt.getGasUsed(),
+//                "status", receipt.getStatus()
+//            ));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return ResponseEntity.status(500)
+//                .body(Map.of("error", e.getMessage()));
+//        }
+//
+//    }
 
     @GetMapping("/getTodayTrans")
     public ResponseEntity<String> getTodayTrans() throws IOException {
         contractService.getTodayTrans();
         return ResponseEntity.ok("value");
+    }
+    @GetMapping("/addDog")
+    public ResponseEntity<String> addDog(String address) throws IOException {
+        contractService.addDog(address);
+        return ResponseEntity.ok("success");
     }
 
 

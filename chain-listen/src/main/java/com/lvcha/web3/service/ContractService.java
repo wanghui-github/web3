@@ -1,15 +1,21 @@
 package com.lvcha.web3.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.lvcha.web3.config.MyConfig;
+import com.lvcha.web3.config.Web3Config;
+import com.lvcha.web3.contract.generated.Lp;
 import com.lvcha.web3.contract.generated.SimpleStorage;
+import com.lvcha.web3.contract.generated.TseToken;
 import io.reactivex.Flowable;
 import io.reactivex.disposables.Disposable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.web.client.RestTemplate;
 import org.web3j.crypto.Credentials;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
@@ -23,10 +29,9 @@ import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -36,33 +41,61 @@ public class ContractService {
     private final Web3j web3j;
     private final Credentials credentials;
     private final ContractGasProvider gasProvider;
-    private final MyConfig ethereumConfig;
+    private final Web3Config ethereumConfig;
+    private SimpleStorage tseContract;
+    private Lp lpContract;
+    private TseToken tokenContract;
+    private List<String> dogList=new ArrayList<>();
 
-    private SimpleStorage contract;
+    private Disposable subscription;
+
+    @Value("${php.dog-url}")
+    private String dogUrl;
 
     @Autowired
     KafkaProducer kafkaProducer;
     @Autowired
     ObjectMapper mapper;
+    @Autowired
+    RestTemplate restTemplate;
+
+
 
     @PostConstruct
     public void init() {
-        contract = SimpleStorage.load(
-            ethereumConfig.getContractAddress(),
+        tseContract = SimpleStorage.load(
+            ethereumConfig.getTseContractAddress(),
             web3j,
             credentials,
             gasProvider
         );
-        log.info("Contract initialized with address: {}", ethereumConfig.getContractAddress());
+        lpContract = Lp.load(
+            ethereumConfig.getLpContractAddress(),
+            web3j,
+            credentials,
+            gasProvider
+        );
+        tokenContract = TseToken.load(
+            ethereumConfig.getTokenContractAddress(),
+            web3j,
+            credentials,
+            gasProvider
+        );
+        log.info("合约 Contract initialized with address: {}", ethereumConfig.getTseContractAddress());
+        log.info("SWAP Contract initialized with address: {}", ethereumConfig.getLpContractAddress());
+        log.info("TSE Token Contract initialized with address: {}", ethereumConfig.getTokenContractAddress());
         // 项目启动时开始监听
         startListening();
-    }
 
-    private Disposable subscription;
+    }
 
     private void startListening() {
         log.info("Starting dcnystake listener...");
-
+        // 在创建新订阅前取消旧订阅
+        if (subscription != null && !subscription.isDisposed()) {
+            subscription.dispose();
+            log.info("Disposed existing subscription");
+        }
         subscription = dcnystakeListen()
             .retryWhen(errors ->
                 errors.delay(10, TimeUnit.SECONDS)  // 延迟5秒后重试
@@ -94,13 +127,13 @@ public class ContractService {
 
     //获取赎回金额
     public BigInteger getUnstakeFromSn(String address,BigInteger  sn) throws Exception {
-        return contract.getlpusdt(sn, address).send();
+        return tseContract.getlpusdt(sn, address).send();
     }
 
 
     public BigInteger getyj(String account) {
         try {
-            return contract.getmyyj(account).send();
+            return tseContract.getmyyj(account).send();
         } catch (Exception e) {
             log.error("Error getting value from contract", e);
             throw new RuntimeException("Failed to get value from contract", e);
@@ -109,7 +142,7 @@ public class ContractService {
 
     public List<String> getPid(String account){
         try {
-            return contract.getallpid(Collections.singletonList(account)).send();
+            return tseContract.getallpid(Collections.singletonList(account)).send();
         } catch (Exception e) {
             log.error("Error getting value from contract", e);
             throw new RuntimeException("Failed to get value from contract", e);
@@ -120,7 +153,7 @@ public class ContractService {
 
         BigInteger amountInWei = amountdcny.multiply(BigInteger.valueOf(1_000_000_000_000_000_000L)); // 10^18
 
-        return contract.dcnystake(amountInWei, days, BigInteger.valueOf(0)).send();
+        return tseContract.dcnystake(amountInWei, days, BigInteger.valueOf(0)).send();
     }
 
     public void getTodayTrans() throws IOException {
@@ -179,17 +212,44 @@ public class ContractService {
                 for (EthBlock.TransactionResult transactionResult : transactions) {
                     if (transactionResult instanceof EthBlock.TransactionObject) {
                         EthBlock.TransactionObject tx = (EthBlock.TransactionObject) transactionResult;
-                        log.info("Checking transaction: {}", tx.getInput());
-                        Map<String, Object> map = new HashMap<>();
-                        map.put("tx", tx);
-                        map.put("block", block.getBlock());
-                        kafkaProducer.sendMessage(mapper.writeValueAsString(map));
+                       //监控SWAP合约
+                        if (tx.getTo().equalsIgnoreCase(ethereumConfig.getLpContractAddress())
+                        && tx.getInput().startsWith("0x38ed1739")) {
+                            log.info("Checking SWAP transaction: {}", tx.getInput());
+                            addDog(tx.getFrom());
+//                            Map<String, Object> map = new HashMap<>();
+//                            map.put("tx", tx);
+//                            map.put("block", block.getBlock());
+//                            kafkaProducer.sendMessage(mapper.writeValueAsString(map));
+                        }
+
                     }
                 }
 
             return Flowable.empty();
             });
     }
+
+    @Async
+    public void addDog(String  address)  {
+        log.info("addDog: {} start", address);
+        try {
+            if(ethereumConfig.getWhiteList().contains( address)){
+                return;
+            }
+
+            if(!CollectionUtils.isEmpty(dogList) && dogList.contains( address)){
+                return;
+            }
+            restTemplate.getForObject(dogUrl+"?wallet={address}", String.class,address);
+            dogList.add( address);
+        } catch (Exception e) {
+            log.error("Error addDog: {}", address, e);
+            throw new RuntimeException(e);
+        }
+
+    }
+
 
 
 
