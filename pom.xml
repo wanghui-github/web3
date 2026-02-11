@@ -136,7 +136,7 @@
                 <configuration>
                     <includeSystemScope>true</includeSystemScope>
                     <fork>true</fork>
-                    <mainClass>web3.EthSpringBootApplication</mainClass>
+                    <mainClass>com.lvcha.web3.EthSpringBootApplication</mainClass>
                     <excludes>
                         <exclude>
                             <groupId>org.projectlombok</groupId>

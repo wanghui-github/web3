@@ -98,9 +98,9 @@ contract TSEZQ is Context, Ownable {
     address private _zeroacc=0x0000000000000000000000000000000000000000;
     address public mainrouter=address(0xd05088b5DF39E11ED0d63e78cCb8210572E2f9A7);
     address public factory=address(0xf3351c51E76d024a2e23C52bF7E8BaA98C7A5D87);
-    address private DCNY=0x6dCef99b8be7933355223a57c31c857d70261fAB;//测试
-    address private TY=0xDBE6E6e6Dd0f56869B852A229f38BeA5850C31E8;//测试
-    address public  KYXFQHY=0x54AF17aCAB86Dd72373eD4EbC5f1B7d43e44FF1e;//可用消费券合约 测试
+    address private DCNY=0x6c591df9001c0fBfa7935351E2500749Ecc66e26;
+    address private TY=0x9F327d97dfb70d5D9ef2fc0c23e53D527C77765D;
+    address public  KYXFQHY=0xD19d51DE410B34075505FB5Ea60B414C5498fAAD;//可用消费券合约
     address private KYXFQDC=0x27D2ACda3384dF65C6D78DaA8cF9736855D435DA;//DCNY代持账号
     address public fhacc=0xccC6cfd50603F2B207b0626CB83073c4c2A64Cb4;//分红钱包
     address public yyacc=0x43C3F5cD40f3B21177d34A405f781700d7D2A0A4;//运营钱包
@@ -124,12 +124,12 @@ contract TSEZQ is Context, Ownable {
     mapping(uint => uint256) private daydcny;
     mapping(uint => uint256) private lpdcnyrate;//DCNY质押利率
     mapping(uint => uint256) private lpkyrate;//KY质押利率
-    uint256 public mintse=10*10000*1e18;
+    uint256 public mintse=1000*10000*1e18;
     uint256 public hlrate=30;//lp回流比例
     uint256 public tsehlrate=30;//TSE债券回流比例
     uint256 public k=1000;
     uint256 public tseday=90;
-    uint256 public tserate=15;
+    uint256 public tserate=30;
     bool public istse=false;
     struct lp{
         uint256 num;//本金
@@ -423,7 +423,7 @@ contract TSEZQ is Context, Ownable {
                     day = 365;
                 }
                 uint lastday = res[i].lastday;
-                uint256 fljj = res[i].num.mul(day.sub(lastday)).mul(5).div(1000);
+                uint256 fljj = res[i].num.mul(day.sub(lastday)).mul(10).div(1000);
                 canlq=fljj;
                 require(canlq > 0,'CANT GET CLAIM');
                 //更新ulp365
@@ -600,7 +600,7 @@ contract TSEZQ is Context, Ownable {
                 lastday=365;
             }
             uint256 day= lastday.sub(userLps[i].lastday);
-            uint256 jj=bj.mul(day).mul(5).div(1000);
+            uint256 jj=bj.mul(day).mul(10).div(1000);
             userLps[i].jj=jj;
         }
         return userLps;

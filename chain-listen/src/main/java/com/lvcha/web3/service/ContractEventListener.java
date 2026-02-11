@@ -28,7 +28,7 @@ public class ContractEventListener {
     @PostConstruct
     public void init() {
         tseContract = SimpleStorage.load(
-            ethereumConfig.getTseContractAddress(),
+            ethereumConfig.getTseContractAddressNew(),
             web3j,
             credentials,
             gasProvider

@@ -36,13 +36,22 @@ public class Web3Config {
     @Value("${ethereum.contract.lp-address}")
     private String lpContractAddress;
 
-    @Value("${ethereum.contract.tse-address}")
-    private String tseContractAddress;
+    @Value("${ethereum.contract.tse-address-old}")
+    private String tseContractAddressOld;
+    @Value("${ethereum.contract.tse-address-new}")
+    private String tseContractAddressNew;
 
     @Value("${ethereum.contract.token-address}")
     private String tokenContractAddress;
+    @Value("${ethereum.dcny.contract}")
+    private String dcnyContractAddress;
+    @Value("${ethereum.dcny.from.address}")
+    private String transferFromAddress;
+    @Value("${ethereum.dcny.from.privateKey}")
+    private String transferFromKey;
 
     private List<String> whiteList;
+    private List<String> toAddress;
 
     @Bean
     public Web3j web3j() {

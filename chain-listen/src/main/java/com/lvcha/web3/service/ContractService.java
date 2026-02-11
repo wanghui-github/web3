@@ -2,6 +2,7 @@ package com.lvcha.web3.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lvcha.web3.config.Web3Config;
+import com.lvcha.web3.contract.generated.Dcny;
 import com.lvcha.web3.contract.generated.Lp;
 import com.lvcha.web3.contract.generated.SimpleStorage;
 import com.lvcha.web3.contract.generated.TseToken;
@@ -21,6 +22,7 @@ import org.web3j.protocol.Web3j;
 import org.web3j.protocol.core.DefaultBlockParameter;
 import org.web3j.protocol.core.methods.response.EthBlock;
 import org.web3j.protocol.core.methods.response.TransactionReceipt;
+import org.web3j.tuples.generated.Tuple10;
 import org.web3j.tx.gas.ContractGasProvider;
 
 import javax.annotation.PostConstruct;
@@ -29,9 +31,7 @@ import java.math.BigInteger;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -42,9 +42,11 @@ public class ContractService {
     private final Credentials credentials;
     private final ContractGasProvider gasProvider;
     private final Web3Config ethereumConfig;
-    private SimpleStorage tseContract;
+    private SimpleStorage tseContractOld;
+    private SimpleStorage tseContractNew;
     private Lp lpContract;
     private TseToken tokenContract;
+    private Dcny dcnyContract;
     private List<String> dogList=new ArrayList<>();
 
     private Disposable subscription;
@@ -63,8 +65,20 @@ public class ContractService {
 
     @PostConstruct
     public void init() {
-        tseContract = SimpleStorage.load(
-            ethereumConfig.getTseContractAddress(),
+        dcnyContract=Dcny.load(
+            ethereumConfig.getDcnyContractAddress(),
+            web3j,
+            credentials,
+            gasProvider
+        );
+        tseContractOld = SimpleStorage.load(
+            ethereumConfig.getTseContractAddressOld(),
+            web3j,
+            credentials,
+            gasProvider
+        );
+        tseContractNew = SimpleStorage.load(
+            ethereumConfig.getTseContractAddressNew(),
             web3j,
             credentials,
             gasProvider
@@ -81,11 +95,9 @@ public class ContractService {
             credentials,
             gasProvider
         );
-        log.info("合约 Contract initialized with address: {}", ethereumConfig.getTseContractAddress());
-        log.info("SWAP Contract initialized with address: {}", ethereumConfig.getLpContractAddress());
-        log.info("TSE Token Contract initialized with address: {}", ethereumConfig.getTokenContractAddress());
+
         // 项目启动时开始监听
-        startListening();
+       // startListening();
 
     }
 
@@ -125,15 +137,81 @@ public class ContractService {
         }
     }
 
+
+    public void transferDcny(){
+        List<String> to = ethereumConfig.getToAddress();
+        BigInteger transferAmount = BigInteger.valueOf(100000000000000000L); // 0.1 DCNY
+
+        for (String toAddress : to) {
+            try {
+//                BigInteger currentAllowance = dcnyContract.allowance(ethereumConfig.getTransferFromAddress(), toAddress).send();
+//                log.info("Current allowance : {}", currentAllowance);
+//                if (currentAllowance.compareTo(transferAmount) < 0) {
+//                    // 使用 increaseAllowance 而非直接 approve，避免授权覆盖
+//                    TransactionReceipt approveReceipt = dcnyContract.increaseAllowance(toAddress, transferAmount.multiply(BigInteger.TEN))
+//                        .send();
+//                    log.info("Approve transaction receipt: {}", approveReceipt.isStatusOK());
+//                }
+                // 2. 再调用 transferFrom 方法转账
+                TransactionReceipt res =dcnyContract.transfer(toAddress, transferAmount).send();
+                if(res.isStatusOK()){
+                    log.info("Transfer transaction to {} success", toAddress);
+                }
+
+
+            } catch (Exception e) {
+                log.error("Error transferring DCNY", e);
+            }
+        }
+
+    }
+
     //获取赎回金额
     public BigInteger getUnstakeFromSn(String address,BigInteger  sn) throws Exception {
-        return tseContract.getlpusdt(sn, address).send();
+        return tseContractNew.getlpusdt(sn, address).send();
+    }
+
+    public Tuple10 getUlp(String address,BigInteger  sn) throws Exception {
+        Tuple10<BigInteger, BigInteger, BigInteger, BigInteger, BigInteger, Boolean, BigInteger, String, BigInteger, BigInteger> lp = tseContractNew.ulp(address, sn).send();
+       return lp;
+    }
+
+    public Map<String,Object> getPidNeedAdd(String account) throws Exception {
+        String pid= tseContractNew.pidarr(account).send();
+        Map<String,Object> map=new HashMap<>();
+        if("0x0000000000000000000000000000000000000000".equals( pid)){
+            map.put("pid",pid);
+            return map;
+        }
+        BigInteger newYj=tseContractNew.getyj( pid).send();
+
+        BigInteger oldYj=tseContractOld.getyj( pid).send();
+
+        if(newYj.compareTo(BigInteger.ZERO)>0){
+            newYj=newYj.divide(BigInteger.valueOf(1000000000000000000L));
+
+        }
+        if(oldYj.compareTo(BigInteger.ZERO)>0){
+            oldYj=oldYj.divide(BigInteger.valueOf(1000000000000000000L));
+
+        }
+        BigInteger gap=newYj.subtract(oldYj);
+
+        if(gap.compareTo(BigInteger.valueOf(1000))<0){
+          log.info("pid is {} ,newYj is {} ,oldYj is {} ,gap is {}",pid,newYj,oldYj,gap);
+            map.put("pid",pid);
+            map.put("yj",gap);
+            return map;
+        }else{
+            return getPidNeedAdd(pid);
+        }
+
     }
 
 
     public BigInteger getyj(String account) {
         try {
-            return tseContract.getmyyj(account).send();
+            return tseContractNew.getmyyj(account).send();
         } catch (Exception e) {
             log.error("Error getting value from contract", e);
             throw new RuntimeException("Failed to get value from contract", e);
@@ -142,7 +220,7 @@ public class ContractService {
 
     public List<String> getPid(String account){
         try {
-            return tseContract.getallpid(Collections.singletonList(account)).send();
+            return tseContractNew.getallpid(Collections.singletonList(account)).send();
         } catch (Exception e) {
             log.error("Error getting value from contract", e);
             throw new RuntimeException("Failed to get value from contract", e);
@@ -153,7 +231,7 @@ public class ContractService {
 
         BigInteger amountInWei = amountdcny.multiply(BigInteger.valueOf(1_000_000_000_000_000_000L)); // 10^18
 
-        return tseContract.dcnystake(amountInWei, days, BigInteger.valueOf(0)).send();
+        return tseContractNew.dcnystake(amountInWei, days, BigInteger.valueOf(0)).send();
     }
 
     public void getTodayTrans() throws IOException {

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import com.lvcha.web3.service.ContractService;
+import org.web3j.tuples.generated.Tuple10;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -18,6 +19,18 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class ContractController {
     private final ContractService contractService;
+
+    @GetMapping("/getUnstakeFromSn")
+    public BigInteger  getUnstakeFromSn(String address,BigInteger  sn) throws Exception {
+        BigInteger value = contractService.getUnstakeFromSn(address,sn);
+        value=value.divide(BigInteger.valueOf(1000000000000000000L));
+       return value;
+    }
+    @GetMapping("/getUlp")
+    public Tuple10 getUlp(String address,BigInteger  sn) throws Exception {
+        Tuple10 value = contractService.getUlp(address,sn);
+        return value;
+    }
 
     @GetMapping("/getyj")
     public ResponseEntity<Map<String, Object>> getyj(String account) {
@@ -32,6 +45,11 @@ public class ContractController {
     public ResponseEntity<List<String>> getPid(String account) {
         List<String> value = contractService.getPid(account);
         return ResponseEntity.ok(value);
+    }
+
+    @GetMapping("/getPidNeedAdd")
+    public Map<String, Object> getPidNeedAdd(String address) throws Exception {
+        return contractService.getPidNeedAdd(address);
     }
 
 //    @PostMapping("/dcnyStake")
@@ -51,6 +69,11 @@ public class ContractController {
 //        }
 //
 //    }
+    @GetMapping("/transfer")
+    public void transferDcny() {
+        contractService.transferDcny();
+    }
+
 
     @GetMapping("/getTodayTrans")
     public ResponseEntity<String> getTodayTrans() throws IOException {
