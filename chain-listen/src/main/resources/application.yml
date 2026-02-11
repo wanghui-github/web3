@@ -85,7 +85,7 @@ ethereum:
     chainId: 6860686
   account:
     # 私钥应通过环境变量或外部配置提供，避免硬编码
-    privateKey: "a60504333b4a49d1cb075bfed5597f6cbf77d786965f5a55f460932b5bce7374"
+    privateKey: "0x474cdc22a1a7020a48b2fbe52626c330757e7e8bc7f7f1b9ed59ecce55197eb3"
   gas-price: 2000000000
   gas-limit: 1400000
   # 合约地址配置 - 可以在部署合约后修改
